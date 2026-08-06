@@ -15,4 +15,16 @@ production deployment and Route live in the
 [caramel-store-manifests](https://github.com/radiosound-com/caramel-store-manifests)
 repository.
 
+The catalog displays the API's `generated_at` timestamp and marks revisions
+older than 48 hours as stale. Package details include all published manifest
+findings, automotive capability flags, the SHA-256 checksum, the APK URL, and
+all validated HTTPS upstream links. Browser requests are credential-free GETs
+to the two public catalog endpoints.
+
+Run the dependency-free UI tests with:
+
+```sh
+node --test app_test.mjs
+```
+
 Licensed under the Apache License, Version 2.0.

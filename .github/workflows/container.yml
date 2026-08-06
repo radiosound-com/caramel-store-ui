@@ -23,9 +23,12 @@ jobs:
         run: |
           test -s index.html
           test -s app.js
+          test -s app-core.mjs
+          test -s app_test.mjs
           test -s styles.css
           test -s nginx.conf
-          ! grep -R -n -E '(/v1/import|Authorization:|import-token|signing-key)' index.html app.js styles.css nginx.conf
+          ! grep -R -n -E '(/v1/import|Authorization:|import-token|signing-key)' index.html app.js app-core.mjs styles.css nginx.conf
+          node --test app_test.mjs
 
   build-check:
     name: Build container (pull requests)

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   ApiError,
+  CAPABILITY_EXPLANATIONS,
   catalogFreshness,
   catalogViewModel,
   classifyError,
@@ -59,6 +60,9 @@ test("detail view model includes capabilities, findings, checksums, and every up
     ["source_code", "issue_tracker", "website"],
   );
   assert.equal(model.entry.sha256, "a".repeat(64));
+  assert.match(CAPABILITY_EXPLANATIONS.automotive_candidate, /Broad scanner gate/);
+  assert.match(CAPABILITY_EXPLANATIONS.automotive_feature, /android\.hardware\.type\.automotive/);
+  assert.match(CAPABILITY_EXPLANATIONS.car_app_service, /CarAppService/);
 });
 
 test("detail loading requests the package endpoint without credentials", async () => {

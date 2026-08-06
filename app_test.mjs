@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import {
   ApiError,
   catalogFreshness,
@@ -104,4 +105,10 @@ test("public JSON requests never switch to POST or upload paths", async () => {
   assert.equal(calls[0].path, "/v1/catalog");
   assert.equal(calls[0].options.method, "GET");
   assert.equal(calls[0].options.credentials, "omit");
+});
+
+test("nginx serves imported ES modules with a JavaScript MIME type", async () => {
+  const nginx = await readFile(new URL("./nginx.conf", import.meta.url), "utf8");
+  assert.match(nginx, /location\s+~\*\s+\\\.mjs\$\s*\{/);
+  assert.match(nginx, /default_type\s+application\/javascript\s*;/);
 });

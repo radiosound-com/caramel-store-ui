@@ -18,8 +18,10 @@ repository.
 The catalog displays the API's `generated_at` timestamp and marks revisions
 older than 48 hours as stale. Package details include all published manifest
 findings, automotive capability flags, the SHA-256 checksum, the APK URL, and
-all validated HTTPS upstream links. Browser requests are credential-free GETs
-to the two public catalog endpoints.
+all validated HTTPS upstream links. F-Droid display metadata is snapshotted by
+the external scanner when available, including the display name, summary,
+description, icon, screenshots, categories, and license. Browser requests are
+credential-free GETs to the two public catalog endpoints.
 
 Run the dependency-free UI tests with:
 

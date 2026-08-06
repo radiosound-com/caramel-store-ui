@@ -31,6 +31,16 @@ const entry = {
     issue_tracker: "https://example.com/issues",
     website: "https://example.com",
   },
+  metadata: {
+    locale: "en-US",
+    display_name: "Example Maps",
+    summary: "Offline maps for everyone",
+    description: "Explore places.\n\nStay private.",
+    categories: ["Navigation"],
+    license: "Apache-2.0",
+    icon_url: "https://f-droid.org/repo/org.example/en-US/icon.png",
+    screenshot_urls: ["https://f-droid.org/repo/org.example/en-US/phoneScreenshots/1.png"],
+  },
 };
 
 const catalog = {
@@ -46,6 +56,7 @@ test("catalog view model renders entries, search results, and freshness", () => 
   assert.equal(model.visibleEntries[0].package_name, entry.package_name);
   assert.equal(model.freshness.status, "current");
   assert.equal(model.source, "F-Droid");
+  assert.equal(catalogViewModel(catalog, "Example Maps").visibleEntries.length, 1);
 });
 
 test("detail view model includes capabilities, findings, checksums, and every upstream link", () => {
@@ -60,6 +71,7 @@ test("detail view model includes capabilities, findings, checksums, and every up
     ["source_code", "issue_tracker", "website"],
   );
   assert.equal(model.entry.sha256, "a".repeat(64));
+  assert.equal(model.metadata.display_name, "Example Maps");
   assert.match(CAPABILITY_EXPLANATIONS.automotive_candidate, /Broad scanner gate/);
   assert.match(CAPABILITY_EXPLANATIONS.automotive_feature, /android\.hardware\.type\.automotive/);
   assert.match(CAPABILITY_EXPLANATIONS.car_app_service, /CarAppService/);

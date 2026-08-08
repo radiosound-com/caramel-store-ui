@@ -4,13 +4,16 @@ import { readFile } from "node:fs/promises";
 import {
   ApiError,
   CAPABILITY_EXPLANATIONS,
+  FIRST_PARTY_INDEX_PATH,
   catalogFreshness,
   catalogViewModel,
   classifyError,
   detailViewModel,
   isCatalogStale,
+  loadCombinedCatalog,
   loadCatalog,
   loadPackage,
+  mergeCatalogs,
   requestJson,
 } from "./app-core.mjs";
 
@@ -45,7 +48,7 @@ const entry = {
 
 const catalog = {
   catalog_version: 1,
-  generated_at: "2026-08-06T12:00:00Z",
+  generated_at: "2099-01-01T12:00:00Z",
   source: "F-Droid",
   entries: [entry],
 };
@@ -57,6 +60,39 @@ test("catalog view model renders entries, search results, and freshness", () => 
   assert.equal(model.freshness.status, "current");
   assert.equal(model.source, "F-Droid");
   assert.equal(catalogViewModel(catalog, "Example Maps").visibleEntries.length, 1);
+});
+
+test("combined catalog includes signed first-party releases and prefers them on duplicates", () => {
+  const firstParty = {
+    generated_at: "2026-08-06T13:00:00Z",
+    source: "Caramel App Repository",
+    entries: [{ ...entry, first_party: true, metadata: { ...entry.metadata, display_name: "Caramel Example" } }],
+  };
+  const merged = mergeCatalogs(catalog, firstParty);
+  assert.equal(merged.entries.length, 1);
+  assert.equal(merged.entries[0].first_party, true);
+  assert.equal(merged.entries[0].metadata.display_name, "Caramel Example");
+  assert.match(merged.source, /Caramel App Repository/);
+});
+
+test("combined catalog tolerates one unavailable source", async () => {
+  const calls = [];
+  const fetchImpl = async (path) => {
+    calls.push(path);
+    if (path === FIRST_PARTY_INDEX_PATH) {
+      return new Response(JSON.stringify({
+        schema_version: 1,
+        generated_at: "2026-08-06T13:00:00Z",
+        repository: { name: "Caramel App Repository" },
+        packages: [entry],
+      }), { status: 200 });
+    }
+    return new Response(JSON.stringify({ error: "unavailable" }), { status: 503 });
+  };
+  const merged = await loadCombinedCatalog(fetchImpl);
+  assert.equal(merged.entries.length, 1);
+  assert.match(merged.notice, /curated catalog/);
+  assert.deepEqual(calls.sort(), ["/fdroid/repo/caramel-index-v1.json", "/v1/catalog"].sort());
 });
 
 test("detail view model includes capabilities, findings, checksums, and every upstream link", () => {

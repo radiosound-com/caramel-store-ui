@@ -15,6 +15,7 @@ import {
   loadPackage,
   mergeCatalogs,
   requestJson,
+  statusLabel,
 } from "./app-core.mjs";
 
 const entry = {
@@ -60,6 +61,12 @@ test("catalog view model renders entries, search results, and freshness", () => 
   assert.equal(model.freshness.status, "current");
   assert.equal(model.source, "F-Droid");
   assert.equal(catalogViewModel(catalog, "Example Maps").visibleEntries.length, 1);
+});
+
+test("unreviewed upstream entries keep their status blank", () => {
+  assert.equal(statusLabel(entry), "");
+  assert.equal(statusLabel(entry, true), "Stale data");
+  assert.equal(statusLabel({ ...entry, first_party: true }), "Caramel release");
 });
 
 test("combined catalog includes signed first-party releases and prefers them on duplicates", () => {

@@ -5,6 +5,7 @@ import {
   ApiError,
   CAPABILITY_EXPLANATIONS,
   FIRST_PARTY_INDEX_PATH,
+  cacheBustedUrl,
   catalogFreshness,
   catalogViewModel,
   classifyError,
@@ -61,6 +62,15 @@ test("catalog view model renders entries, search results, and freshness", () => 
   assert.equal(model.freshness.status, "current");
   assert.equal(model.source, "F-Droid");
   assert.equal(catalogViewModel(catalog, "Example Maps").visibleEntries.length, 1);
+});
+
+test("metadata asset URLs change when the published catalog revision changes", () => {
+  const original = entry.metadata.screenshot_urls[0];
+  const firstRevision = cacheBustedUrl(original, "2026-08-09T18:44:22+00:00");
+  const secondRevision = cacheBustedUrl(original, "2026-08-09T19:02:11+00:00");
+  assert.notEqual(firstRevision, secondRevision);
+  assert.equal(new URL(firstRevision).searchParams.get("caramel_revision"), "2026-08-09T18:44:22+00:00");
+  assert.equal(cacheBustedUrl(original), original);
 });
 
 test("unreviewed upstream entries keep their status blank", () => {

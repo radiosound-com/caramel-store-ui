@@ -5,6 +5,7 @@ signed first-party repository index:
 
 - `GET /v1/catalog`
 - `GET /v1/catalog/<package-name>`
+- `GET /v1/rankings`
 - `GET /fdroid/repo/caramel-index-v1.json`
 
 The UI is intentionally same-origin with the API. The OKD router sends the
@@ -20,7 +21,9 @@ repository.
 The catalog merges curated upstream applications with signed first-party
 releases, preferring the first-party entry when a package is present in both.
 It displays the catalog freshness timestamp and marks revisions older than 48
-hours as stale. Package details include the display name, summary, description,
+hours as stale. The landing page highlights recently updated applications and
+shows popularity signals when the aggregate rankings endpoint has enough data.
+Package details include the display name, summary, description,
 icon, screenshots, manifest findings, automotive capability flags, SHA-256
 checksum, APK download action, and validated HTTPS upstream links. Browser
 requests are credential-free GETs and never contain import controls or

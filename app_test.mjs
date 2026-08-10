@@ -10,10 +10,14 @@ import {
   catalogViewModel,
   classifyError,
   detailViewModel,
+  entryRanking,
+  entryUpdatedAt,
+  isRecentlyUpdated,
   isCatalogStale,
   loadCombinedCatalog,
   loadCatalog,
   loadPackage,
+  loadRankings,
   mergeCatalogs,
   requestJson,
   statusLabel,
@@ -43,6 +47,7 @@ const entry = {
     description: "Explore places.\n\nStay private.",
     categories: ["Navigation"],
     license: "Apache-2.0",
+    last_updated: "2026-08-08T12:00:00Z",
     icon_url: "https://f-droid.org/repo/org.example/en-US/icon.png",
     screenshot_urls: ["https://f-droid.org/repo/org.example/en-US/phoneScreenshots/1.png"],
   },
@@ -62,6 +67,26 @@ test("catalog view model renders entries, search results, and freshness", () => 
   assert.equal(model.freshness.status, "current");
   assert.equal(model.source, "F-Droid");
   assert.equal(catalogViewModel(catalog, "Example Maps").visibleEntries.length, 1);
+});
+
+test("catalog discovery sorts recent updates and optional popularity rankings", () => {
+  const now = Date.parse("2026-08-09T12:00:00Z");
+  const older = {
+    ...entry,
+    package_name: "org.example.older",
+    metadata: { ...entry.metadata, display_name: "Older App", last_updated: "2026-06-01T12:00:00Z" },
+  };
+  const model = catalogViewModel(
+    { ...catalog, entries: [older, entry] },
+    "",
+    now,
+    [{ package_name: older.package_name, rank: 2 }],
+  );
+  assert.deepEqual(model.recentEntries.map((item) => item.package_name), [entry.package_name]);
+  assert.deepEqual(model.rankedEntries.map((item) => [item.entry.package_name, item.ranking.rank]), [[older.package_name, 2]]);
+  assert.equal(isRecentlyUpdated(entry, now), true);
+  assert.equal(entryUpdatedAt(entry), Date.parse(entry.metadata.last_updated));
+  assert.deepEqual(entryRanking(older, [{ package_name: older.package_name, rank: 2 }]).rank, 2);
 });
 
 test("metadata asset URLs change when the published catalog revision changes", () => {
@@ -156,6 +181,18 @@ test("catalog API and missing-package errors classify separately", async () => {
   const missing = new ApiError("not found", 404);
   assert.equal(classifyError(missing, "detail"), "missing");
   assert.equal(classifyError(missing, "catalog"), "error");
+});
+
+test("rankings requests are read-only and omit credentials", async () => {
+  const calls = [];
+  const rankings = await loadRankings(async (path, options) => {
+    calls.push({ path, options });
+    return new Response(JSON.stringify({ entries: [] }), { status: 200 });
+  });
+  assert.deepEqual(rankings.entries, []);
+  assert.equal(calls[0].path, "/v1/rankings");
+  assert.equal(calls[0].options.method, "GET");
+  assert.equal(calls[0].options.credentials, "omit");
 });
 
 test("generated_at marks old catalogs stale", () => {
